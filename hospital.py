@@ -1,313 +1,525 @@
-while (True):
-    print("""
-            ================================
-               Welcome To CityHospital
-            ================================
-    """)
-    # creating database connectivity
-    import mysql.connector
-    passwd = str(input("Enter the Password Please!!:"))
+import tkinter as tk
+from tkinter import messagebox, scrolledtext
+import mysql.connector
 
-    mysql = mysql.connector.connect(
-        host="localhost", user="root", passwd=passwd)
-    mycursor = mysql.cursor()
-    mycursor.execute("create database if not exists city_hospitals")
-    mycursor.execute("use city_hospitals")
-    # creating the tables we need
-    mycursor.execute(
-        "create table if not exists patient_detail(name varchar(30) primary key,sex varchar(15),age int(3),address varchar(50),contact varchar(15))")
-    mycursor.execute("create table if not exists doctor_details(name varchar(30) primary key,specialisation varchar(40),age int(2),address varchar(30),contact varchar(15),fees int(10),monthly_salary int(10))")
-    mycursor.execute(
-        "create table if not exists nurse_details(name varchar(30) primary key,age int(2),address varchar(30),contact varchar(15),monthly_salary int(10))")
-    mycursor.execute(
-        "create table if not exists other_workers_details(name varchar(30) primary key,age int(2),address varchar(30),contact varchar(15),monthly_salary int(10))")
+class CityHospitalApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("City Hospital Management System")
+        self.root.geometry("800x600")
 
-    # creating table for storing the username and password of the user
-    mycursor.execute(
-        "create table if not exists user_data(username varchar(30) primary key,password varchar(30) default'000')")
+        self.connection = mysql.connector.connect(
+            host="localhost", user="root", passwd="yourpassword", database="city_hospitals"
+        )
+        self.cursor = self.connection.cursor()
 
-    while (True):
-        print("""
-                        1. Sign In
-                        2. Registration
-                                                            """)
+        self.create_tables()
+        self.show_login_screen()
 
-        r = int(input("enter your choice:"))
-        if r == 2:
-            print("""
+    def create_tables(self):
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS patient_detail (name VARCHAR(30) PRIMARY KEY, sex VARCHAR(15), age INT(3), address VARCHAR(50), contact VARCHAR(15))"
+        )
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS doctor_details (name VARCHAR(30) PRIMARY KEY, specialisation VARCHAR(40), age INT(3), address VARCHAR(50), contact VARCHAR(15), fees INT(10), monthly_salary INT(10))"
+        )
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS nurse_details (name VARCHAR(30) PRIMARY KEY, age INT(3), address VARCHAR(50), contact VARCHAR(15), monthly_salary INT(10))"
+        )
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS user_data (username VARCHAR(30) PRIMARY KEY, password VARCHAR(30))"
+        )
+        self.connection.commit()
 
-                =======================================
-                !!!!!!!!!!Register Yourself!!!!!!!!
-                =======================================
-                                                    """)
-            u = input("Input your username!!:")
-            p = input("Input the password (Password must be strong!!!:")
-            mycursor.execute(
-                "insert into user_data values('" + u + "','" + p + "')")
-            mysql.commit()
+    def show_login_screen(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-            print("""
-                ============================================
-                !!Well Done!!Registration Done Successfully!!
-                ============================================
-                                                    """)
-            x = input("enter any key to continue:")
-        # IF USER WANTS TO LOGIN
-        elif r == 1:
-            print("""
-                    ==================================
-                    !!!!!!!!  {{Sign In}}  !!!!!!!!!!
-                    ==================================
-                                                        """)
-            un = input("Enter Username!!:")
-            ps = input("Enter Password!!:")
+        self.label = tk.Label(self.root, text="Welcome to City Hospital")
+        self.label.pack(pady=10)
 
-            mycursor.execute(
-                "select password from user_data where username='" + un + "'")
-            row = mycursor.fetchall()
-            for i in row:
-                a = list(i)
-                if a[0] == str(ps):
-                    while (True):
-                        print("""
-                                1.Administration
-                                2.Patient(Details)
-                                3.Sign Out
+        self.login_button = tk.Button(self.root, text="Login", command=self.show_login_form)
+        self.login_button.pack(pady=5)
 
-                                                            """)
+        self.register_button = tk.Button(self.root, text="Register", command=self.show_register_form)
+        self.register_button.pack(pady=5)
 
-                        a = int(input("ENTER YOUR CHOICE:"))
-                        if a == 1:
-                            print("""
-                                    1. Display the details
-                                    2. Add a new member
-                                    3. Delete a member
-                                    4. Make an exit
-                                                             """)
-                            b = int(input("Enter your Choice:"))
-                            # details
-                            if b == 1:
-                                print("""
-                                        1. Doctors Details
-                                        2. Nurse Details
-                                        3. Others
-                                                         """)
+    def show_login_form(self):
+        self.username = tk.StringVar()
+        self.password = tk.StringVar()
 
-                                c = int(input("Enter your Choice:"))
-                                if c == 1:
-                                    mycursor.execute(
-                                        "select * from doctor_details")
-                                    row = mycursor.fetchall()
-                                    for i in row:
-                                        b = 0
-                                        v = list(i)
-                                        k = ["NAME", "SPECIALISATION", "AGE", "ADDRESS", "CONTACT", "FEES",
-                                             "MONTHLY_SALARY"]
-                                        d = dict(zip(k, v))
-                                        print(d)
-                                # displays nurses details
-                                elif c == 2:
-                                    mycursor.execute(
-                                        "select * from nurse_details")
-                                    row = mycursor.fetchall()
-                                    for i in row:
-                                        v = list(i)
-                                        k = ["NAME", "SPECIALISATION", "AGE",
-                                             "ADDRESS", "CONTACT", "MONTHLY_SALARY"]
-                                        d = dict(zip(k, v))
-                                        print(d)
-                                # displays worker details
-                                elif c == 3:
-                                    mycursor.execute(
-                                        "select * from other_workers_details")
-                                    row = mycursor.fetchall()
-                                    for i in row:
-                                        v = list(i)
-                                        k = ["NAME", "SPECIALISATION", "AGE",
-                                             "ADDRESS", "CONTACT""MONTHLY_SALARY"]
-                                        d = dict(zip(k, v))
-                                        print(d)
-                            # IF USER WANTS TO ENTER DETAILS
-                            elif b == 2:
-                                print("""
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-                                        1. Doctor Details
-                                        2. Nurse Details
-                                        3. Others
-                                                                                    """)
-                                c = int(input("ENTER YOUR CHOICE:"))
-                                # enter doctor details
-                                if c == 1:
-                                    # ASKING THE DETAILS
-                                    name = input("Enter the doctor's name")
-                                    spe = input("Enter the specilization:")
-                                    age = input("Enter the age:")
-                                    add = input("Enter the address:")
-                                    cont = input("Enter Contact Details:")
-                                    fees = input("Enter the fees:")
-                                    ms = input("Enter Monthly Salary:")
-                                    # Inserting values in doctors details
-                                    mycursor.execute("insert into doctor_details values('" + name + "','" + spe +
-                                                     "','" + age + "','" + add + "','" + cont + "','" + fees + "','" + ms + "')")
-                                    mysql.commit()
-                                    print("SUCCESSFULLY ADDED")
-                                # for nurse details
-                                elif c == 2:
-                                    # ASKING THE DETAILS
-                                    name = input("Enter Nurse name:")
-                                    age = input("Enter age:")
-                                    add = input("Enter address:")
-                                    cont = input("Enter Contact No:")
-                                    ms = int(input("Enter Monthly Salary"))
-                                    # INSERTING VALUES ENTERED TO THE TABLE
-                                    mycursor.execute("insert into nurse_details values('" + name + "','" + age + "','" + add + "','" + cont + "','" + str(
-                                        ms) + "')")
-                                    mysql.commit()
-                                    print("SUCCESSFULLY ADDED")
-                                # for entering workers details
-                                elif c == 3:
-                                    # ASKING THE DETAILS
-                                    name = input("Enter worker name:")
-                                    age = input("Enter age:")
-                                    add = input("Enter address:")
-                                    cont = input("Enter Contact No.:")
-                                    ms = input("Enter Monthly Salary:")
-                                    # INSERTING VALUES ENTERED TO THE TABLE
-                                    mycursor.execute("insert into other_workers_details values('" +
-                                                     name + "','" + age + "','" + add + "','" + cont + "','" + ms + "')")
-                                    mysql.commit()
-                                    print("SUCCESSFULLY ADDED")
-                            # to delete data
-                            elif b == 3:
-                                print("""
-                                        1. Doctor Details
-                                        2. Nurse Details
-                                        3. Others
-                                                                                    """)
-                                c = int(input("Enter your Choice:"))
-                                # deleting doctor's details
-                                if c == 1:
-                                    name = input("Enter Doctor's Name:")
-                                    mycursor.execute(
-                                        "select * from doctor_details where name='" + name + "'")
-                                    row = mycursor.fetchall()
-                                    print(row)
-                                    p = input(
-                                        "you really wanna delete this data? (y/n):")
-                                    if p == "y":
-                                        mycursor.execute(
-                                            "delete from doctor_details where name='" + name + "'")
-                                        mysql.commit()
-                                        print("SUCCESSFULLY DELETED!!")
-                                    else:
-                                        print("NOT DELETED")
+        self.label = tk.Label(self.root, text="Login")
+        self.label.pack(pady=10)
 
-                                # deleting nurse details
-                                elif c == 2:
-                                    name = input("Enter Nurse Name:")
-                                    mycursor.execute(
-                                        "select * from nurse_details where name='" + name + "'")
-                                    row = mycursor.fetchall()
-                                    print(row)
-                                    p = input(
-                                        "you really wanna delete this data? (y/n):")
-                                    if p == "y":
-                                        mycursor.execute(
-                                            "delete from nurse_details where name='" + name + "'")
-                                        mysql.commit()
-                                        print("SUCCESSFULLY DELETED!!")
-                                    else:
-                                        print("NOT DELETED")
-                                # deleting other_workers details
-                                elif c == 3:
-                                    name = input("Enter the worker Name")
-                                    mycursor.execute(
-                                        "select * from workers_details where name='" + name + "'")
-                                    row = mycursor.fetchall()
-                                    print(row)
-                                    p = input(
-                                        "you really wanna delete this data? (y/n):")
-                                    if p == "y":
-                                        mycursor.execute(
-                                            "delete from other_workers_details where name='" + name + "'")
-                                        mysql.commit()
-                                        print("SUCCESSFULLY DELETED!!")
-                                    else:
-                                        print("NOT DELETED")
-                            elif b == 4:
-                                break
+        self.username_label = tk.Label(self.root, text="Username:")
+        self.username_label.pack(pady=5)
+        self.username_entry = tk.Entry(self.root, textvariable=self.username)
+        self.username_entry.pack(pady=5)
 
-                        # entering the patient details table
-                        elif a == 2:
+        self.password_label = tk.Label(self.root, text="Password:")
+        self.password_label.pack(pady=5)
+        self.password_entry = tk.Entry(self.root, textvariable=self.password, show="*")
+        self.password_entry.pack(pady=5)
 
-                            print("""
-                                        1. Show Patients Info
-                                        2. Add New Patient
-                                        3. Discharge Summary
-                                        4. Exit
-                                                               """)
-                            b = int(input("Enter your Choice:"))
-                            # showing the existing details
-                            # if user wants to see the details of PATIENT
-                            if b == 1:
-                                mycursor.execute(
-                                    "select * from patient_detail")
-                                row = mycursor.fetchall()
-                                for i in row:
-                                    b = 0
-                                    v = list(i)
-                                    k = ["NAME", "SEX", "AGE",
-                                         "ADDRESS", "CONTACT"]
-                                    d = dict(zip(k, v))
-                                    print(d)
+        self.login_button = tk.Button(self.root, text="Login", command=self.login)
+        self.login_button.pack(pady=10)
 
-                            # adding new patient
-                            elif b == 2:
-                                name = input("Enter your name ")
-                                sex = input("Enter the gender: ")
-                                age = input("Enter age: ")
-                                address = input("Enter address: ")
-                                contact = input("Contact Details: ")
-                                mycursor.execute("insert into patient_detail values('" + name + "','" + sex + "','" +
-                                                 age + "','" + address + "','" + contact + "')")
-                                mysql.commit()
-                                mycursor.execute(
-                                    "select * from patient_detail")
-                                for i in mycursor:
-                                    v = list(i)
-                                    k = ['NAME', 'SEX', 'AGE',
-                                         'ADDRESS', 'CONTACT']
-                                    print(dict(zip(k, v)))
-                                    print("""
-                                        ====================================
-                                        !!!!!!!Registered Successfully!!!!!!
-                                        ====================================
-                                                        """)
-                            # dischare process
-                            elif b == 3:
-                                name = input("Enter the Patient Name:")
-                                mycursor.execute(
-                                    "select * from patient_detail where name='" + name + "'")
-                                row = mycursor.fetchall()
-                                print(row)
-                                bill = input(
-                                    "Has he paid all the bills? (y/n):")
-                                if bill == "y":
-                                    mycursor.execute(
-                                        "delete from patient_detail where name='" + name + "'")
-                                    mysql.commit()
-                            # if user wants to exit
-                            elif b == 4:
-                                break
-                        # SIGN OUT
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_login_screen)
+        self.back_button.pack(pady=10)
 
-                        elif a == 3:
-                            break
+    def show_register_form(self):
+        self.new_username = tk.StringVar()
+        self.new_password = tk.StringVar()
 
-                # IF THE USERNAME AND PASSWORD IS NOT IN THE DATABASE
-                else:
-                    break
-mysql.close()
-                
-                    
-                    
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Register")
+        self.label.pack(pady=10)
+
+        self.username_label = tk.Label(self.root, text="Username:")
+        self.username_label.pack(pady=5)
+        self.username_entry = tk.Entry(self.root, textvariable=self.new_username)
+        self.username_entry.pack(pady=5)
+
+        self.password_label = tk.Label(self.root, text="Password:")
+        self.password_label.pack(pady=5)
+        self.password_entry = tk.Entry(self.root, textvariable=self.new_password, show="*")
+        self.password_entry.pack(pady=5)
+
+        self.register_button = tk.Button(self.root, text="Register", command=self.register)
+        self.register_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_login_screen)
+        self.back_button.pack(pady=10)
+
+    def login(self):
+        username = self.username.get()
+        password = self.password.get()
+
+        self.cursor.execute("SELECT password FROM user_data WHERE username=%s", (username,))
+        row = self.cursor.fetchone()
+        if row and row[0] == password:
+            messagebox.showinfo("Success", "Login Successful!")
+            self.show_admin_menu()
+        else:
+            messagebox.showerror("Error", "Invalid username or password")
+
+    def register(self):
+        username = self.new_username.get()
+        password = self.new_password.get()
+
+        try:
+            self.cursor.execute("INSERT INTO user_data (username, password) VALUES (%s, %s)", (username, password))
+            self.connection.commit()
+            messagebox.showinfo("Success", "Registration Successful!")
+            self.show_login_form()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def show_admin_menu(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Admin Menu")
+        self.label.pack(pady=10)
+
+        self.doctor_button = tk.Button(self.root, text="Doctor Details", command=self.show_doctor_details)
+        self.doctor_button.pack(pady=5)
+
+        self.nurse_button = tk.Button(self.root, text="Nurse Details", command=self.show_nurse_details)
+        self.nurse_button.pack(pady=5)
+
+        self.patient_button = tk.Button(self.root, text="Patient Details", command=self.show_patient_details)
+        self.patient_button.pack(pady=5)
+
+        self.logout_button = tk.Button(self.root, text="Logout", command=self.show_login_screen)
+        self.logout_button.pack(pady=10)
+
+    def show_doctor_details(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Doctor Details")
+        self.label.pack(pady=10)
+
+        self.display_button = tk.Button(self.root, text="Display All Doctors", command=self.display_doctors)
+        self.display_button.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add New Doctor", command=self.add_doctor)
+        self.add_button.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Delete Doctor", command=self.delete_doctor)
+        self.delete_button.pack(pady=5)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_admin_menu)
+        self.back_button.pack(pady=10)
+
+        self.text_box = scrolledtext.ScrolledText(self.root, wrap=tk.WORD, width=70, height=10)
+        self.text_box.pack(pady=10)
+
+    def display_doctors(self):
+        self.cursor.execute("SELECT * FROM doctor_details")
+        rows = self.cursor.fetchall()
+        self.text_box.delete(1.0, tk.END)
+        for row in rows:
+            self.text_box.insert(tk.END, f"{row}\n")
+
+    def add_doctor(self):
+        self.new_name = tk.StringVar()
+        self.new_specialisation = tk.StringVar()
+        self.new_age = tk.IntVar()
+        self.new_address = tk.StringVar()
+        self.new_contact = tk.StringVar()
+        self.new_fees = tk.IntVar()
+        self.new_salary = tk.IntVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Add New Doctor")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.new_name)
+        self.name_entry.pack(pady=5)
+
+        self.specialisation_label = tk.Label(self.root, text="Specialisation:")
+        self.specialisation_label.pack(pady=5)
+        self.specialisation_entry = tk.Entry(self.root, textvariable=self.new_specialisation)
+        self.specialisation_entry.pack(pady=5)
+
+        self.age_label = tk.Label(self.root, text="Age:")
+        self.age_label.pack(pady=5)
+        self.age_entry = tk.Entry(self.root, textvariable=self.new_age)
+        self.age_entry.pack(pady=5)
+
+        self.address_label = tk.Label(self.root, text="Address:")
+        self.address_label.pack(pady=5)
+        self.address_entry = tk.Entry(self.root, textvariable=self.new_address)
+        self.address_entry.pack(pady=5)
+
+        self.contact_label = tk.Label(self.root, text="Contact:")
+        self.contact_label.pack(pady=5)
+        self.contact_entry = tk.Entry(self.root, textvariable=self.new_contact)
+        self.contact_entry.pack(pady=5)
+
+        self.fees_label = tk.Label(self.root, text="Fees:")
+        self.fees_label.pack(pady=5)
+        self.fees_entry = tk.Entry(self.root, textvariable=self.new_fees)
+        self.fees_entry.pack(pady=5)
+
+        self.salary_label = tk.Label(self.root, text="Monthly Salary:")
+        self.salary_label.pack(pady=5)
+        self.salary_entry = tk.Entry(self.root, textvariable=self.new_salary)
+        self.salary_entry.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add", command=self.insert_doctor)
+        self.add_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_doctor_details)
+        self.back_button.pack(pady=10)
+
+    def insert_doctor(self):
+        name = self.new_name.get()
+        specialisation = self.new_specialisation.get()
+        age = self.new_age.get()
+        address = self.new_address.get()
+        contact = self.new_contact.get()
+        fees = self.new_fees.get()
+        salary = self.new_salary.get()
+
+        try:
+            self.cursor.execute(
+                "INSERT INTO doctor_details (name, specialisation, age, address, contact, fees, monthly_salary) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (name, specialisation, age, address, contact, fees, salary)
+            )
+            self.connection.commit()
+            messagebox.showinfo("Success", "Doctor added successfully!")
+            self.show_doctor_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def delete_doctor(self):
+        self.delete_name = tk.StringVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Delete Doctor")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.delete_name)
+        self.name_entry.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Delete", command=self.remove_doctor)
+        self.delete_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_doctor_details)
+        self.back_button.pack(pady=10)
+
+    def remove_doctor(self):
+        name = self.delete_name.get()
+
+        try:
+            self.cursor.execute("DELETE FROM doctor_details WHERE name=%s", (name,))
+            self.connection.commit()
+            messagebox.showinfo("Success", "Doctor deleted successfully!")
+            self.show_doctor_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def show_nurse_details(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Nurse Details")
+        self.label.pack(pady=10)
+
+        self.display_button = tk.Button(self.root, text="Display All Nurses", command=self.display_nurses)
+        self.display_button.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add New Nurse", command=self.add_nurse)
+        self.add_button.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Delete Nurse", command=self.delete_nurse)
+        self.delete_button.pack(pady=5)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_admin_menu)
+        self.back_button.pack(pady=10)
+
+        self.text_box = scrolledtext.ScrolledText(self.root, wrap=tk.WORD, width=70, height=10)
+        self.text_box.pack(pady=10)
+
+    def display_nurses(self):
+        self.cursor.execute("SELECT * FROM nurse_details")
+        rows = self.cursor.fetchall()
+        self.text_box.delete(1.0, tk.END)
+        for row in rows:
+            self.text_box.insert(tk.END, f"{row}\n")
+
+    def add_nurse(self):
+        self.new_name = tk.StringVar()
+        self.new_age = tk.IntVar()
+        self.new_address = tk.StringVar()
+        self.new_contact = tk.StringVar()
+        self.new_salary = tk.IntVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Add New Nurse")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.new_name)
+        self.name_entry.pack(pady=5)
+
+        self.age_label = tk.Label(self.root, text="Age:")
+        self.age_label.pack(pady=5)
+        self.age_entry = tk.Entry(self.root, textvariable=self.new_age)
+        self.age_entry.pack(pady=5)
+
+        self.address_label = tk.Label(self.root, text="Address:")
+        self.address_label.pack(pady=5)
+        self.address_entry = tk.Entry(self.root, textvariable=self.new_address)
+        self.address_entry.pack(pady=5)
+
+        self.contact_label = tk.Label(self.root, text="Contact:")
+        self.contact_label.pack(pady=5)
+        self.contact_entry = tk.Entry(self.root, textvariable=self.new_contact)
+        self.contact_entry.pack(pady=5)
+
+        self.salary_label = tk.Label(self.root, text="Monthly Salary:")
+        self.salary_label.pack(pady=5)
+        self.salary_entry = tk.Entry(self.root, textvariable=self.new_salary)
+        self.salary_entry.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add", command=self.insert_nurse)
+        self.add_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_nurse_details)
+        self.back_button.pack(pady=10)
+
+    def insert_nurse(self):
+        name = self.new_name.get()
+        age = self.new_age.get()
+        address = self.new_address.get()
+        contact = self.new_contact.get()
+        salary = self.new_salary.get()
+
+        try:
+            self.cursor.execute(
+                "INSERT INTO nurse_details (name, age, address, contact, monthly_salary) VALUES (%s, %s, %s, %s, %s)",
+                (name, age, address, contact, salary)
+            )
+            self.connection.commit()
+            messagebox.showinfo("Success", "Nurse added successfully!")
+            self.show_nurse_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def delete_nurse(self):
+        self.delete_name = tk.StringVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Delete Nurse")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.delete_name)
+        self.name_entry.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Delete", command=self.remove_nurse)
+        self.delete_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_nurse_details)
+        self.back_button.pack(pady=10)
+
+    def remove_nurse(self):
+        name = self.delete_name.get()
+
+        try:
+            self.cursor.execute("DELETE FROM nurse_details WHERE name=%s", (name,))
+            self.connection.commit()
+            messagebox.showinfo("Success", "Nurse deleted successfully!")
+            self.show_nurse_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def show_patient_details(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Patient Details")
+        self.label.pack(pady=10)
+
+        self.display_button = tk.Button(self.root, text="Display All Patients", command=self.display_patients)
+        self.display_button.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add New Patient", command=self.add_patient)
+        self.add_button.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Discharge Patient", command=self.delete_patient)
+        self.delete_button.pack(pady=5)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_admin_menu)
+        self.back_button.pack(pady=10)
+
+        self.text_box = scrolledtext.ScrolledText(self.root, wrap=tk.WORD, width=70, height=10)
+        self.text_box.pack(pady=10)
+
+    def display_patients(self):
+        self.cursor.execute("SELECT * FROM patient_detail")
+        rows = self.cursor.fetchall()
+        self.text_box.delete(1.0, tk.END)
+        for row in rows:
+            self.text_box.insert(tk.END, f"{row}\n")
+
+    def add_patient(self):
+        self.new_name = tk.StringVar()
+        self.new_sex = tk.StringVar()
+        self.new_age = tk.IntVar()
+        self.new_address = tk.StringVar()
+        self.new_contact = tk.StringVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Add New Patient")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.new_name)
+        self.name_entry.pack(pady=5)
+
+        self.sex_label = tk.Label(self.root, text="Sex:")
+        self.sex_label.pack(pady=5)
+        self.sex_entry = tk.Entry(self.root, textvariable=self.new_sex)
+        self.sex_entry.pack(pady=5)
+
+        self.age_label = tk.Label(self.root, text="Age:")
+        self.age_label.pack(pady=5)
+        self.age_entry = tk.Entry(self.root, textvariable=self.new_age)
+        self.age_entry.pack(pady=5)
+
+        self.address_label = tk.Label(self.root, text="Address:")
+        self.address_label.pack(pady=5)
+        self.address_entry = tk.Entry(self.root, textvariable=self.new_address)
+        self.address_entry.pack(pady=5)
+
+        self.contact_label = tk.Label(self.root, text="Contact:")
+        self.contact_label.pack(pady=5)
+        self.contact_entry = tk.Entry(self.root, textvariable=self.new_contact)
+        self.contact_entry.pack(pady=5)
+
+        self.add_button = tk.Button(self.root, text="Add", command=self.insert_patient)
+        self.add_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_patient_details)
+        self.back_button.pack(pady=10)
+
+    def insert_patient(self):
+        name = self.new_name.get()
+        sex = self.new_sex.get()
+        age = self.new_age.get()
+        address = self.new_address.get()
+        contact = self.new_contact.get()
+
+        try:
+            self.cursor.execute(
+                "INSERT INTO patient_detail (name, sex, age, address, contact) VALUES (%s, %s, %s, %s, %s)",
+                (name, sex, age, address, contact)
+            )
+            self.connection.commit()
+            messagebox.showinfo("Success", "Patient added successfully!")
+            self.show_patient_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+    def delete_patient(self):
+        self.delete_name = tk.StringVar()
+
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        self.label = tk.Label(self.root, text="Discharge Patient")
+        self.label.pack(pady=10)
+
+        self.name_label = tk.Label(self.root, text="Name:")
+        self.name_label.pack(pady=5)
+        self.name_entry = tk.Entry(self.root, textvariable=self.delete_name)
+        self.name_entry.pack(pady=5)
+
+        self.delete_button = tk.Button(self.root, text="Discharge", command=self.remove_patient)
+        self.delete_button.pack(pady=10)
+
+        self.back_button = tk.Button(self.root, text="Back", command=self.show_patient_details)
+        self.back_button.pack(pady=10)
+
+    def remove_patient(self):
+        name = self.delete_name.get()
+
+        try:
+            self.cursor.execute("DELETE FROM patient_detail WHERE name=%s", (name,))
+            self.connection.commit()
+            messagebox.showinfo("Success", "Patient discharged successfully!")
+            self.show_patient_details()
+        except mysql.connector.Error as err:
+            messagebox.showerror("Error", f"Error: {err}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CityHospitalApp(root)
+    root.mainloop()
